@@ -57,7 +57,7 @@ print(mean,type = "html")
 ```
 
 <!-- html table generated in R 4.5.3 by xtable 1.8-8 package -->
-<!-- Sat May 30 18:18:26 2026 -->
+<!-- Sat May 30 23:39:30 2026 -->
 <table border=1>
 <tr> <th>  </th> <th> mean </th> <th> median </th>  </tr>
   <tr> <td align="right"> 1 </td> <td align="right">  </td> <td align="right">  </td> </tr>
@@ -106,7 +106,7 @@ line_plot + geom_line()  + labs(x = "5 Minutes Intervel")
 
 ![](Report_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
-#Max no of steps taken on average across all days
+## Max no of steps taken on average across all days
 
 
 ``` r
@@ -121,7 +121,7 @@ interval_mean[which(interval_mean$steps == max),]
 ## 1 835M 0S   206.
 ```
 
-##Calculating Missing values
+## Calculating Missing values
 
 
 ``` r
@@ -140,7 +140,7 @@ There are 13.12% missing values in the data
 no_nas <- new_data %>% mutate(steps = replace_na(steps, as.integer(round(mean(steps, na.rm = TRUE)))))
 ```
 
-In the above chunk I have calculated the mean for the 5 minute interval and replaced the nas with it.
+Replacing the missing values by calculating the mean of steps taken daily in 5 minute interval
 
 
 ``` r
@@ -151,7 +151,7 @@ print(average, type = "html")
 ```
 
 <!-- html table generated in R 4.5.3 by xtable 1.8-8 package -->
-<!-- Sat May 30 18:18:26 2026 -->
+<!-- Sat May 30 23:39:30 2026 -->
 <table border=1>
 <tr> <th>  </th> <th> median </th> <th> mean </th>  </tr>
   <tr> <td align="right"> 1 </td> <td align="right"> 34.50 </td> <td align="right"> 37.37 </td> </tr>
@@ -187,6 +187,7 @@ print(average, type = "html")
   <tr> <td align="right"> 31 </td> <td align="right"> 0.00 </td> <td align="right"> 53.52 </td> </tr>
    </table>
 
+## Creating Histpgram of total number of steps taken each day
 
 ``` r
 graph <- ggplot(no_nas,aes(x = date, weight = steps))
@@ -198,6 +199,8 @@ graph + geom_histogram(binwidth = 1) + labs(title = "Steps taken per day", y = "
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+Grouping the data frame by weekday and interval and calculating the mean and
+creating the line graph
 
 ``` r
 by_week <- mutate(no_nas,
