@@ -1,0 +1,101 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
+
+## Loading and preprocessing the data
+
+```{r echo=TRUE}
+library(tidyverse)
+library(dplyr)
+library(xtable)
+data <- read.csv(unz("activity.zip","activity.csv"))
+data <- mutate(data, date = ymd(date))
+data <- group_by(data, by = day(date))
+
+```
+
+## Making histogram
+
+```{r}
+library(ggplot2)
+graph <- ggplot(data,aes(x = date, weight = steps))
+graph + geom_histogram(binwidth = 1) + labs(title = "Steps taken per day", y = "Steps",
+        x = "") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+## What is mean total number of steps taken per day?
+
+```{r, results= "asis"}
+library(xtable)
+mean <- summarise(data, mean = mean(steps, na.rm = TRUE))
+mean <- mutate(mean, median = summarise(data, median = median(steps, na.rm = TRUE))$median)
+mean <- xtable(mean[,-1])
+print(mean,type = "html")
+```
+
+## What is the average daily activity pattern?
+
+```{r}
+data <- mutate(data, interval = minutes(interval))
+new_data <- group_by(data, interval)
+interval_mean <- summarise(new_data, steps = mean(steps, na.rm = TRUE))
+line_plot <- ggplot(interval_mean, aes(x = minute(interval), y = steps))
+line_plot + geom_line()  + labs(x = "5 Minutes Intervel")
+
+```
+
+#Max no of steps taken on average across all days
+
+```{r}
+max <- max(interval_mean$steps)
+interval_mean[which(interval_mean$steps == max),]
+```
+
+##Calculating Missing values
+
+```{r}
+mean(is.na(data$steps)) *100
+
+```
+There are 13.12% missing values in the data
+
+## Imputing missing values
+
+```{r}
+
+no_nas <- new_data %>% mutate(steps = replace_na(steps, as.integer(round(mean(steps, na.rm = TRUE)))))
+```
+
+In the above chunk I have calculated the mean for the 5 minute interval and replaced the nas with it.
+
+```{r, results= "asis"}
+
+average <- no_nas %>% group_by(day(date))%>% summarise(mean = mean(steps))
+average <- no_nas %>% group_by(day(date)) %>% summarise(median = median(steps)) %>% mutate(average,median = median)
+average <- xtable(average[,-1])
+print(average, type = "html")
+
+```
+
+```{r}
+graph <- ggplot(no_nas,aes(x = date, weight = steps))
+graph + geom_histogram(binwidth = 1) + labs(title = "Steps taken per day", y = "Steps",
+        x = "") + theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+
+by_week <- mutate(no_nas,
+        day_type = if_else(weekdays(date) %in% c("Saturday", "Sunday"), "Weekend", "Weekday"),
+        day_type = factor(day_type, levels = c("Weekday", "Weekend")))
+by_week <- group_by(by_week, day_type, interval) %>% summarise(steps = mean(steps), .groups = "drop_last")
+line_grap <- ggplot(by_week, aes(x = as.numeric(interval, "minutes"), y = steps, group = 1))
+line_grap + geom_line() + facet_grid(by_week$day_type~.)
+
+```
